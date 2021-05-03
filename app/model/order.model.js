@@ -39,110 +39,190 @@ const Order = function(order) {
   this.id = order.id;
 };
 
-Order.create = (newOrder, result) => {
-  sql.query("INSERT INTO testdb.order SET ?", newOrder, (err, res) => {
-    if (err) {
-      console.log("error: ", err);
-      result(err, null);
-      return;
-    }
 
-    console.log("created order: ", { orderId: res.insertId, ...newOrder });
-    result(null, { orderId: res.insertId, ...newOrder });
+
+Order.create=newOrder =>{
+  return new Promise((resolve,reject)=>{
+    sql.query("INSERT INTO testdb.orders SET ?", newOrder, (err, res) => {
+          if (err) {
+            console.log("error: ", err);
+            return reject(err);
+           // return reject("Error occured");
+          }
+      
+          console.log("created order: ", { orderID: res.insertId, ...newOrder });
+          resolve({ orderID: res.insertId, ...newOrder });
+        });
   });
-};
+}
 
 
 
-Order.findById = (orderId, result) => {
-  sql.query(`SELECT * FROM testdb.order WHERE orderId = ${orderId}`, (err, res) => {
+Order.findById = (orderId) => {
+
+  return new Promise((resolve,reject)=>{
+  sql.query(`SELECT * FROM testdb.orders WHERE orderId = ${orderId}`, (err, res) => {
     if (err) {
       console.log("error: ", err);
-      result(err, null);
-      return;
+     // result(err, null);
+      //return;
+       return reject(err);
     }
 
     if (res.length) {
       console.log("found order: ", res[0]);
-      result(null, res[0]);
-      return;
+     // result(null, res[0]);
+     //return
+       resolve(res[0]);
     }
 
     // not found order with the id
-    result({ kind: "not_found" }, null);
+    //result({ kind: "not_found" }, null);
+    reject({ result: "not_found" })
+
   });
+});
 };
 
 
 
-Order.getAll = result => {
-  sql.query("SELECT * FROM testdb.order", (err, res) => {
+Order.getAll = () => {
+
+  return new Promise((resolve,reject)=>{
+  sql.query("SELECT * FROM testdb.orders", (err, res) => {
     if (err) {
       console.log("error: ", err);
-      result(null, err);
-      return;
-    }
+     // result(null, err);
+      //return;
 
-    console.log("orders: ", res);
-    result(null, res);
+      return reject(err);
+    }
+    if (res.length) {
+      console.log("found order: ", res[0]);
+     // result(null, res[0]);
+     //return
+     return  resolve(res);
+    }
+    resolve({ result: "not_found" })
+  
   });
+
+});
 };
 
 
-Order.updateById = (orderId, order, result) => {
+Order.updateById = (orderId, order) => {
+
+  return new Promise((resolve,reject)=>{
   sql.query(
-    "UPDATE testdb.order SET itemQuantity = ?, itemPrice = ? WHERE orderId = ?",
+    "UPDATE testdb.orders SET itemQuantity = ?, itemPrice = ? WHERE orderId = ?",
     [order.itemQuantity, order.itemPrice, orderId],
     (err, res) => {
       if (err) {
         console.log("error: ", err);
-        result(null, err);
-        return;
+       // result(null, err);
+        //return;
+        return reject(err)
       }
 
       if (res.affectedRows == 0) {
         // not found Order with the id
-        result({ kind: "not_found" }, null);
-        return;
+       // result({ kind: "not_found" }, null);
+        //return;
+       return  reject({ kind: "not_found" })
       }
 
-      console.log("updated order: ", { orderId: orderId, ...order });
-      result(null, { orderId: orderId, ...order });
+     // console.log("updated order: ", { orderId: orderId, ...order });
+      //result(null, { orderId: orderId, ...order });
+      console.log("updated order: ")
+      resolve({ orderId: orderId, ...order });
     }
   );
+});
 };
 
 
-Order.remove = (orderId, result) => {
-  sql.query("DELETE FROM testdb.order WHERE orderId = ?", orderId, (err, res) => {
+  /* Order.remove = (orderId) => {
+
+  return new Promise((resolve,reject)=>{
+  sql.query("DELETE FROM testdb.orders WHERE orderId = ?", orderId, (err, res) => {
     if (err) {
       console.log("error: ", err);
-      result(null, err);
+     // result(null, err);
+     // return;
+     return reject(err)
+    }
+
+    if (res.affectedRows == 0) {
+    
+     // result({ kind: "not_found" }, null);
+     // return;
+
+      return reject({ kind: "not_found" })
+    }
+
+    console.log("deleted order with id: ", orderId);
+   // result(null, res);
+
+     return resolve(res)
+  });
+
+});
+};
+ */  
+
+
+
+//old code
+
+//Order.remove = (orderId) => {
+
+  Order.remove = (orderId, result) => {
+
+ // return new Promise((resolve,reject)=>{
+  sql.query("DELETE FROM testdb.orders WHERE orderId = ?", orderId, (err, res) => {
+    if (err) {
+      console.log("error: ", err);
+      result(err, null);
       return;
+     //return reject(err)
     }
 
     if (res.affectedRows == 0) {
       // not found Order with the id
-      result({ kind: "not_found" }, null);
+      result(null, { kind: "not_found" });
       return;
+
+     // return reject({ kind: "not_found" })
     }
 
     console.log("deleted order with id: ", orderId);
-    result(null, res);
+   result(null, res);
+
+     //return resolve(res)
   });
+
+//});
 };
 
+
 Order.removeAll = result => {
-  sql.query("DELETE FROM testdb.order", (err, res) => {
+
+  return new Promise((resolve,reject)=>{
+  sql.query("DELETE FROM testdb.orders", (err, res) => {
     if (err) {
       console.log("error: ", err);
-      result(null, err);
-      return;
+     // result(null, err);
+     // return;
+     return reject(err);
     }
 
     console.log(`deleted ${res.affectedRows} orders`);
-    result(null, res);
+    //result(null, res);
+    resolve(res);
   });
+
+});
 };
 
 
